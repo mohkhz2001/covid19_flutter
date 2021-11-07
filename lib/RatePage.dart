@@ -1,6 +1,7 @@
+import 'dart:convert' as json;
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert' as json;
 import 'package:intl/intl.dart';
 
 class RatePage extends StatefulWidget {
@@ -26,7 +27,7 @@ class _RatePageState extends State<RatePage> {
 
   fetchWorldWideData() async {
     try {
-      countriesData= [];
+      countriesData = [];
       countriesInfo = [];
       set_url();
       var response = await http.get(url_all);
@@ -154,17 +155,31 @@ class _RatePageState extends State<RatePage> {
                                   height: 50,
                                 ),
                               ),
-                              Container(
-                                margin: EdgeInsets.only(left: 10),
-                                child: Text(
-                                  countriesInfo[index]._name,
-                                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                              Flexible(
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      margin: EdgeInsets.only(left: 10),
+                                      child: RichText(
+                                        overflow: TextOverflow.ellipsis,
+                                        strutStyle: StrutStyle(fontSize: 12.0),
+                                        text: TextSpan(
+                                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black),
+                                            text: countriesInfo[index]._name),
+                                      ),
+                                    ),
+                                    Container(
+                                        margin: EdgeInsets.only(left: 20),
+                                        child: RichText(
+                                            overflow: TextOverflow.ellipsis,
+                                            strutStyle: StrutStyle(fontSize: 12.0),
+                                            text: TextSpan(
+                                              style: TextStyle(fontSize: 13, color: Colors.black),
+                                              text: "${dropdownValue} : ${f.format(txt(index))}",
+                                            )))
+                                  ],
                                 ),
                               ),
-                              Container(
-                                margin: EdgeInsets.only(left: 20),
-                                child: Text("${dropdownValue} : ${f.format(txt(index))}", style: TextStyle(fontSize: 13)),
-                              )
                             ],
                           ), // name of the country
                         );
