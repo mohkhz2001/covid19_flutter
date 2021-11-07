@@ -63,7 +63,6 @@ class HomePanel extends StatelessWidget {
           Container(
             decoration:
                 BoxDecoration(color: backGround, borderRadius: BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30))),
-            margin: EdgeInsets.only(bottom: 10),
             width: double.infinity,
             child: Column(
               children: [
@@ -149,11 +148,31 @@ class HomePanel extends StatelessWidget {
                   ),
                 ),
                 TotalStatistics(worldData['cases'].toString(), worldData['recovered'].toString(), worldData['deaths'].toString()),
+                _reference()
               ],
             ),
           )
         ],
       )),
     ]);
+  }
+
+  _reference() {
+    return Container(
+      margin: EdgeInsets.only(bottom: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text("Reference:  ", style: TextStyle(color: Color(0xff1c1c1c), fontSize: 15)),
+          GestureDetector(
+            onTap: () {},
+            child: Text(
+              "www.worldometers.info",
+              style: TextStyle(color: Colors.blue, fontSize: 15),
+            ),
+          )
+        ],
+      ),
+    );
   }
 }
