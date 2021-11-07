@@ -1,4 +1,5 @@
 import 'dart:ffi';
+import 'dart:io';
 import 'package:covid19_flutter/ChooseCountryBottomSheet.dart';
 import 'package:covid19_flutter/TotalStatistics.dart';
 import 'package:flutter/material.dart';
@@ -21,6 +22,7 @@ class _CountryPanleState extends State<CountryPanle> {
 
   List? countriesData; // save data from Api
   List<Country> countriesInfo = []; // after fetching => save the country info
+  List<Country> countriesInfoDisplay = []; // show the item want to display --> for search part
 
   var f = NumberFormat("###,###", "en_US");
 
@@ -50,6 +52,7 @@ class _CountryPanleState extends State<CountryPanle> {
 
       countriesInfo.add(country);
     }
+    countriesInfoDisplay = countriesInfo;
   }
 
   @override
@@ -89,6 +92,7 @@ class _CountryPanleState extends State<CountryPanle> {
                           children: [
                             GestureDetector(
                               onTap: () {
+                                countriesInfoDisplay = countriesInfo;
                                 showModalBottomSheet(
                                     // ---------------------//
                                     context: context,
@@ -130,7 +134,7 @@ class _CountryPanleState extends State<CountryPanle> {
                                                               itemBuilder: (context, index) {
                                                                 return GestureDetector(
                                                                   onTap: () {
-                                                                    _selectItem(countriesInfo[index]);
+                                                                    _selectItem(countriesInfoDisplay[index]);
                                                                   },
                                                                   child: Container(
                                                                     padding: EdgeInsets.only(left: 10, right: 10),
@@ -144,14 +148,14 @@ class _CountryPanleState extends State<CountryPanle> {
                                                                     child: Row(
                                                                       children: [
                                                                         Image.network(
-                                                                          countriesInfo[index]._flag,
+                                                                          countriesInfoDisplay[index]._flag,
                                                                           width: 50,
                                                                           height: 50,
                                                                         ),
                                                                         Container(
                                                                           margin: EdgeInsets.only(left: 10),
                                                                           child: Text(
-                                                                            countriesInfo[index]._name,
+                                                                            countriesInfoDisplay[index]._name,
                                                                             style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                                                                           ),
                                                                         ),
@@ -160,7 +164,7 @@ class _CountryPanleState extends State<CountryPanle> {
                                                                   ),
                                                                 );
                                                               },
-                                                              itemCount: countriesInfo == null ? 0 : countriesInfo.length,
+                                                              itemCount: countriesInfoDisplay == null ? 0 : countriesInfoDisplay.length,
                                                             ),
                                                           ),
                                                         ),
@@ -174,7 +178,13 @@ class _CountryPanleState extends State<CountryPanle> {
                                 width: double.infinity,
                                 margin: EdgeInsets.all(35),
                                 padding: EdgeInsets.all(10),
-                                decoration: BoxDecoration(color: Color(0xFFA3A3A3), borderRadius: BorderRadius.all(Radius.circular(15))),
+                                decoration: BoxDecoration(
+                                    color: Color(0xFFA3A3A3),
+                                    borderRadius: BorderRadius.all(Radius.circular(15)),
+                                    border: Border.all(
+                                      color: Color(0xFF747474),
+                                      width: 1.5,
+                                    )),
                                 child: Center(
                                   child: Text(
                                     "${selectedCountry == null ? countriesInfo[0].name : selectedCountry!.name.toString()}",
@@ -261,6 +271,8 @@ class _CountryPanleState extends State<CountryPanle> {
                                       ],
                                     ),
                                   ),
+                                  Text("* If the government has not yet released the statistics, it will be displayed as N/A",
+                                      style: TextStyle(fontSize: 13, color: Color(0xffff0000))),
                                 ],
                               ),
                             ),
@@ -269,6 +281,7 @@ class _CountryPanleState extends State<CountryPanle> {
                               (selectedCountry == null ? countriesInfo[0]._recovered : selectedCountry!._recovered).toString(),
                               (selectedCountry == null ? countriesInfo[0]._deaths : selectedCountry!._deaths).toString(),
                             ),
+                            _reference()
                           ],
                         ),
                       )
@@ -280,6 +293,26 @@ class _CountryPanleState extends State<CountryPanle> {
     );
   }
 
+  _reference() {
+    return Container(
+      margin: EdgeInsets.only(bottom: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text("Reference:  ", style: TextStyle(color: Color(0xff1c1c1c), fontSize: 15)),
+          GestureDetector(
+            onTap: () {},
+            child: Text(
+              "www.worldometers.info",
+              style: TextStyle(color: Colors.blue, fontSize: 15),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+
   _selectItem(Country selectedCountry) {
     Navigator.pop(context);
     setState(() {
@@ -288,20 +321,20 @@ class _CountryPanleState extends State<CountryPanle> {
   }
 
   _search(var text) {
-    List<Country> a = [];
-    for (int i = 0; i < countriesInfo.length; i++) {
-      if (countriesInfo[i]._name.toString().toLowerCase().contains(text.toString().toLowerCase())) {
-        a.add(countriesInfo[i]);
-      }
-    }
-    print(a.length);
+    text = text.toString().toLowerCase();
+    setState(() {
+      countriesInfoDisplay = countriesInfo.where((country) {
+        var countryName = country._name.toString().toLowerCase();
+        return countryName.contains(text);
+      }).toList();
+    });
   }
 
   // show the text => if value equal 0 show N/A
   _text(var value) {
     print("N/A");
     return value == 0
-        ? (Text("N/A", style: TextStyle(color: Colors.red, fontSize: 18, fontWeight: FontWeight.bold), textAlign: TextAlign.center))
+        ? (Text("N/A", style: TextStyle(color: Color(0xFFEEEEEE), fontSize: 18, fontWeight: FontWeight.bold), textAlign: TextAlign.center))
         : (Text(value.toString().length > 3 ? (f.format(value)).toString() : value.toString(),
             style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold), textAlign: TextAlign.center));
   }
