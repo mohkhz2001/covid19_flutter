@@ -1,4 +1,6 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:numberpicker/numberpicker.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert' as json;
@@ -18,6 +20,10 @@ class _HistoryPanelState extends State<HistoryPanel> {
   List? countriesData; // save data from Api
   List<Country> countriesName = []; // after fetching => save the country info
   List<History> historyList = [];
+  List<Country> countriesInfoDisplay = [];
+  var visiblity_set = true;
+
+  var f = NumberFormat("###,###", "en_US");
 
   fetchWorldWideData() async {
     var response = await http.get(url_getCountry);
@@ -45,11 +51,12 @@ class _HistoryPanelState extends State<HistoryPanel> {
         counter++;
       }
     }
+    countriesInfoDisplay = countriesName;
   }
 
   Country? selectedCountry;
   var pasDays = "set day", countryName = "set country";
-  int _currentValue = 3;
+  int? _currentValue = 2;
 
   void getHistory() async {
     var url_getHistory = Uri.parse('https://disease.sh/v3/covid-19/historical/${selectedCountry!._name}?lastdays=30');
@@ -60,7 +67,7 @@ class _HistoryPanelState extends State<HistoryPanel> {
         var data = json.jsonDecode(response.body);
 
         Map<String, dynamic> timeline = data!['timeline'];
-        for (int i = 0; i < 30; i++) {
+        for (int i = 0; i < _currentValue!; i++) {
           History history = new History();
           history.date = _calculateDate(i + 1);
           history.cases = timeline['cases'][_calculateDate(i + 1)].toString();
@@ -94,86 +101,89 @@ class _HistoryPanelState extends State<HistoryPanel> {
   Widget build(BuildContext context) {
     return countriesName.length < 1
         ? CircularProgressIndicator()
-        : Center(
+        : Container(
             child: Column(
               children: [
-                Container(
-                  margin: EdgeInsets.fromLTRB(10, 5, 10, 5),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Expanded(
-                        child: Container(
-                          padding: EdgeInsets.only(top: 5, bottom: 5),
-                          margin: EdgeInsets.only(right: 10),
-                          child: TextButton(
-                            style: ButtonStyle(
-                                elevation: MaterialStateProperty.all(4),
-                                backgroundColor: MaterialStateProperty.all(Colors.white),
-                                shape: MaterialStateProperty.all<RoundedRectangleBorder>(RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(15.0), side: BorderSide(color: Colors.blue, width: 2)))),
-                            onPressed: () {
-                              _bottomSheet_setDay();
-                            },
-                            child: Text(
-                              pasDays,
-                              style: TextStyle(color: Colors.black, fontSize: 20, fontStyle: FontStyle.normal),
-                            ),
-                          ),
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      visiblity_set = !visiblity_set;
+                    });
+                  },
+                  child: Container(
+                    margin: EdgeInsets.only(top: 12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "set value ",
+                          style: TextStyle(fontSize: 18),
                         ),
-                      ),
-                      Expanded(
-                        child: Container(
-                          padding: EdgeInsets.only(top: 5, bottom: 5),
-                          margin: EdgeInsets.only(left: 10),
-                          child: TextButton(
-                            style: ButtonStyle(
-                                elevation: MaterialStateProperty.all(4),
-                                backgroundColor: MaterialStateProperty.all(Colors.white),
-                                shape: MaterialStateProperty.all<RoundedRectangleBorder>(RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(15.0), side: BorderSide(color: Colors.blue, width: 2)))),
-                            onPressed: () {
-                              _bottomSheet_setCountry();
-                            },
-                            child: Text(
-                              countryName,
-                              style: TextStyle(color: Colors.black, fontSize: 20, fontStyle: FontStyle.normal),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                        Icon(
+                          visiblity_set ? Icons.arrow_drop_up : Icons.arrow_drop_down,
+                          size: 25,
+                        )
+                      ],
+                    ),
                   ),
                 ),
-                // Expanded(
-                //   child: Container(
-                //       decoration:
-                //           BoxDecoration(color: backGround, borderRadius: BorderRadius.only(topRight: Radius.circular(20), topLeft: Radius.circular(20))),
-                //       child:
-                //       ExpansionPanelList(
-                //         expansionCallback: (int index, bool isExpanded) {
-                //           setState(() {
-                //             coun[index].isExpanded = !isExpanded;
-                //           });
-                //         },
-                //         children: _data.map<ExpansionPanel>((Item item) {
-                //           return ExpansionPanel(
-                //             headerBuilder: (BuildContext context, bool isExpanded) {
-                //               return ListTile(
-                //                 title: Text(item.headerValue),
-                //               );
-                //             },
-                //             body: ListTile(
-                //                 title: Text(item.expandedValue),
-                //                 subtitle: const Text('To delete this panel, tap the trash can icon'),
-                //                 trailing: const Icon(Icons.delete),
-                //                 onTap: () {}),
-                //             isExpanded: item.isExpanded,
-                //           );
-                //         }).toList(),
-                //       )
-                //   ),
-                // )
+                Visibility(
+                  visible: visiblity_set,
+                  child: Column(children: [
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.only(top: 10, bottom: 10),
+                      margin: EdgeInsets.only(right: 20, left: 20),
+                      child: TextButton(
+                        style: ButtonStyle(
+                            elevation: MaterialStateProperty.all(4),
+                            backgroundColor: MaterialStateProperty.all(Colors.white),
+                            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0), side: BorderSide(color: Colors.blue, width: 2)))),
+                        onPressed: () {
+                          _bottomSheet_setDay();
+                        },
+                        child: Text(
+                          "set days",
+                          style: TextStyle(color: Colors.black, fontSize: 20, fontStyle: FontStyle.normal),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.only(top: 10, bottom: 5),
+                      margin: EdgeInsets.only(right: 20, left: 20 ),
+                      child: TextButton(
+                        style: ButtonStyle(
+                            elevation: MaterialStateProperty.all(4),
+                            backgroundColor: MaterialStateProperty.all(Colors.white),
+                            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0), side: BorderSide(color: Colors.blue, width: 2)))),
+                        onPressed: () {
+                          _bottomSheet_setCountry();
+                        },
+                        child: Text(
+                          "set country",
+                          style: TextStyle(color: Colors.black, fontSize: 20, fontStyle: FontStyle.normal),
+                        ),
+                      ),
+                    ),
+                  ]),
+                ),
+                Expanded(
+                    child: Container(
+                      margin: EdgeInsets.only(top: 15),
+                      decoration: BoxDecoration(
+                        color:Color(0xffb6b6b6),
+                        borderRadius: BorderRadius.only(topLeft: Radius.circular(30) , topRight: Radius.circular(30))
+                      ),
+                      child: Container(
+                          child: historyList.length > 0
+                              ? _HistoryList()
+                              : Center(
+                                  child: Text("choose the country"),
+                                )),
+                    )),
               ],
             ),
           );
@@ -182,7 +192,9 @@ class _HistoryPanelState extends State<HistoryPanel> {
   _selectItem(Country selectedCountry) {
     Navigator.pop(context);
     setState(() {
+      this.historyList.clear();
       this.selectedCountry = selectedCountry;
+      this.countryName = selectedCountry._name.toString();
       getHistory();
     });
   }
@@ -192,6 +204,16 @@ class _HistoryPanelState extends State<HistoryPanel> {
     setState(() {
       this.pasDays = "${_currentValue}";
     });
+  }
+
+  _bottomSheetValue() {
+    return showModalBottomSheet(
+        context: context,
+        builder: (context) {
+          return Container(
+            height: 400,
+          );
+        });
   }
 
   _bottomSheet_setCountry() {
@@ -225,7 +247,7 @@ class _HistoryPanelState extends State<HistoryPanel> {
                                   ),
                                 ),
                                 onChanged: (text) {
-                                  // _search(text);
+                                  _search(text);
                                 },
                               ),
                             ),
@@ -236,7 +258,7 @@ class _HistoryPanelState extends State<HistoryPanel> {
                                   itemBuilder: (context, index) {
                                     return GestureDetector(
                                       onTap: () {
-                                        _selectItem(countriesName[index]);
+                                        _selectItem(countriesInfoDisplay[index]);
                                       },
                                       child: Container(
                                         padding: EdgeInsets.only(left: 10, right: 10),
@@ -250,7 +272,7 @@ class _HistoryPanelState extends State<HistoryPanel> {
                                             Container(
                                               margin: EdgeInsets.only(left: 10),
                                               child: Text(
-                                                countriesName[index]._name,
+                                                countriesInfoDisplay[index]._name,
                                                 style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                                               ),
                                             ),
@@ -259,7 +281,7 @@ class _HistoryPanelState extends State<HistoryPanel> {
                                       ),
                                     );
                                   },
-                                  itemCount: countriesName == null ? 0 : countriesName.length,
+                                  itemCount: countriesInfoDisplay == null ? 0 : countriesInfoDisplay.length,
                                 ),
                               ),
                             ),
@@ -290,14 +312,23 @@ class _HistoryPanelState extends State<HistoryPanel> {
                     : Expanded(
                         child: Column(
                           children: [
-                            Expanded(
-                              child: NumberPicker(
-                                selectedTextStyle: TextStyle(color: Colors.blue ,fontSize: 20 , fontWeight: FontWeight.bold ),
-                                value: _currentValue,
-                                minValue: 1,
-                                maxValue: 29,
-
-                                onChanged: (value) => setState(() => _currentValue = value),
+                            Center(
+                              child: ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  // Set height to one line, otherwise the whole vertical space is occupied.
+                                  maxHeight: 300,
+                                ),
+                                child: new ListWheelScrollView.useDelegate(
+                                  itemExtent: 30,
+                                  childDelegate: ListWheelChildLoopingListDelegate(
+                                    children: List<Widget>.generate(
+                                      29,
+                                      (index) => Text(
+                                        '${index + 1}',
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                             Container(
@@ -323,6 +354,118 @@ class _HistoryPanelState extends State<HistoryPanel> {
                       )),
           );
         });
+  }
+
+  _search(var text) {
+    text = text.toString().toLowerCase();
+    setState(() {
+      countriesInfoDisplay = countriesName.where((country) {
+        var countryName = country._name.toString().toLowerCase();
+        return countryName.contains(text);
+      }).toList();
+    });
+  }
+
+  /*
+       formula :
+           total of statistics today - total of statistics yesterday  == new case of today
+        in this way I calculated the statistics of 29 days ago
+         */
+
+  Widget _HistoryList() {
+    return ListView.builder(
+      itemBuilder: (context, index) {
+        return Container(
+          margin: EdgeInsets.all(15),
+          padding: EdgeInsets.all(16),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(15), color: Color(0xffd9d9d9)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                historyList[index]._date,
+                textAlign: TextAlign.left,
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                ),
+              ),
+              Container(
+                margin: EdgeInsets.all(10),
+                padding: EdgeInsets.only(left: 10, right: 10),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  color: Color(0xff1F273D),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Container(
+                          margin: EdgeInsets.only(top: 8, bottom: 10),
+                          child: Text(
+                            "Infected",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 21, color: Color(0xffFFBC00), fontStyle: FontStyle.italic),
+                          ),
+                        ),
+                        Container(
+                          margin: EdgeInsets.only(bottom: 8),
+                          child: Text(f.format(int.parse(historyList[index]._cases) - int.parse(historyList[index + 1]._cases)),
+                              style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+                        )
+                      ],
+                    ),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        Container(
+                          margin: EdgeInsets.only(top: 8, bottom: 10),
+                          child: Text(
+                            "Recovered",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 21, color: Color(0xff00FF66), fontStyle: FontStyle.italic),
+                          ),
+                        ),
+                        Container(
+                          child: Text(f.format(int.parse(historyList[index]._recovered) - int.parse(historyList[index + 1]._recovered)),
+                              style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+                        )
+                      ],
+                    ),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        Container(
+                          margin: EdgeInsets.only(top: 8, bottom: 10),
+                          child: Text(
+                            "Death",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 21, color: Color(0xffFF5E00), fontStyle: FontStyle.italic),
+                          ),
+                        ),
+                        Container(
+                          margin: EdgeInsets.only(bottom: 8),
+                          child: Text(
+                            f.format(int.parse(historyList[index]._deaths) - int.parse(historyList[index + 1]._deaths)),
+                            style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                            textAlign: TextAlign.center,
+                          ),
+                        )
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+      itemCount: historyList == null ? 0 : historyList.length - 1,
+    );
   }
 }
 
@@ -389,7 +532,7 @@ class Country {
 }
 
 class History {
-  var _date, _cases, _deaths, _recovered;
+  var _date, _name, _flag, _cases, _todayCases, _deaths, _todayDeaths, _recovered, _todayRecovered;
 
   get date => _date;
 
@@ -413,5 +556,35 @@ class History {
 
   set recovered(value) {
     _recovered = value;
+  }
+
+  get todayRecovered => _todayRecovered;
+
+  set todayRecovered(value) {
+    _todayRecovered = value;
+  }
+
+  get todayDeaths => _todayDeaths;
+
+  set todayDeaths(value) {
+    _todayDeaths = value;
+  }
+
+  get todayCases => _todayCases;
+
+  set todayCases(value) {
+    _todayCases = value;
+  }
+
+  get flag => _flag;
+
+  set flag(value) {
+    _flag = value;
+  }
+
+  get name => _name;
+
+  set name(value) {
+    _name = value;
   }
 }
