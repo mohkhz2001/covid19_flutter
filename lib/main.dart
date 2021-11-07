@@ -27,8 +27,6 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   String _connectionStatus = 'Unknown';
 
-  void refresh() {}
-
   int _selectedIndex = 2;
 
   final Connectivity _connectivity = Connectivity();
@@ -75,21 +73,12 @@ class _HomePageState extends State<HomePage> {
 
   static const TextStyle optionStyle = TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
 
-  static const List<Widget> _widgetOptions = <Widget>[test(), CountryPanle(), HistoryPanel(), RatePage(), AboutPanel()];
+  static const List<Widget> _widgetOptions = <Widget>[test(), CountryPanle(), HistoryPanel(), RatePage()];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          actions: [
-            IconButton(
-              onPressed: () {
-                refresh();
-              },
-              icon: const Icon(Icons.refresh_sharp),
-              color: Colors.white,
-            )
-          ],
           centerTitle: false,
           title: Text("Covid-19 tracker"),
         ),
@@ -116,10 +105,6 @@ class _HomePageState extends State<HomePage> {
             BottomNavigationBarItem(
               icon: Icon(Icons.star_rate),
               label: "Rate",
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.info),
-              label: "About",
             ),
           ],
         ));
